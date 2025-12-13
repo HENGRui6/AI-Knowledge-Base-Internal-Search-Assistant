@@ -1,0 +1,54 @@
+# Compiled class files
+*.class
+target/
+
+# Log files
+*.log
+
+# Package Files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.cursor/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node modules (for React frontend)
+node_modules/
+react-demo/node_modules/
+
+# Environment variables and secrets
+*.env
+*accessKeys.csv
+
+# Test files
+test-documents.ps1
+downloaded-document.pdf
+test.pdf
+
+# Spring Boot
+.springBeans
+spring-shell.log
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
+
