@@ -1,0 +1,19 @@
+# Railway Configuration for Backend
+
+[build]
+builder = "NIXPACKS"
+
+[build.nixpacksSettings]
+nixpkgsArchive = "e05605ec414618eab4a7a6aeaf61f98794f6e321"
+
+[build.nixpacksPlan.phases.setup]
+nixPkgs = ["maven", "jdk17"]
+
+[build.nixpacksPlan.phases.build]
+cmds = ["cd backend && mvn clean package -DskipTests"]
+
+[deploy]
+startCommand = "cd backend && java -jar target/spring-boot-demo-0.0.1-SNAPSHOT.jar"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+

@@ -1,0 +1,12 @@
+{
+  "buildCommand": "cd frontend/ai-knowledge-base && npm install && npm run build",
+  "outputDirectory": "frontend/ai-knowledge-base/build",
+  "framework": "create-react-app",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
+

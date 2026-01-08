@@ -1,54 +1,60 @@
-# Compiled class files
-*.class
-target/
+# Sensitive configuration files
+backend/src/main/resources/application.properties
+application.properties
 
-# Log files
-*.log
+# Backend compiled files
+backend/target/
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
 
-# Package Files
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
+# Frontend dependencies and build
+frontend/ai-knowledge-base/node_modules/
+frontend/ai-knowledge-base/build/
+frontend/ai-knowledge-base/.env
+frontend/ai-knowledge-base/.env.local
 
-# Maven
-.mvn/
-mvnw
-mvnw.cmd
-
-# IDE
+# IDE files
+.vscode/
 .idea/
 *.iml
-.vscode/
 .cursor/
 
-# OS
+# OS files
 .DS_Store
 Thumbs.db
 
-# Node modules (for React frontend)
-node_modules/
-react-demo/node_modules/
+# Logs
+*.log
 
-# Environment variables and secrets
-*.env
-*accessKeys.csv
+# AWS credentials
+*.csv
+*accessKeys*
 
 # Test files
-test-documents.ps1
-downloaded-document.pdf
-test.pdf
+*.bak
 
-# Spring Boot
-.springBeans
-spring-shell.log
+# Temporary PowerShell scripts (diagnostics/testing)
+test-*.ps1
+check-*.ps1
+diagnose-*.ps1
+package-lambda.ps1
+delete-*.ps1
+cleanup-orphan-*.ps1
+upload-docs.ps1
+rename-news-articles.ps1
 
-# Temporary files
-*.tmp
-*.swp
-*.swo
-*~
+# Lambda deployment packages
+lambda-deployment-package.zip
+lambda-package-temp/
+
+# Sample documents (optional - keep local only)
+docs/
+
+# Temporary folders
+test-temp/
+test-pypdf2/
+
+# Local-only tutorial (do not push)
+LOCAL_TUTORIAL.md
 
