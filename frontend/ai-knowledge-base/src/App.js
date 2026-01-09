@@ -415,6 +415,11 @@ function App() {
         {/* 2. Search Section */}
         <section className="card">
           <h2>Search Documents</h2>
+          {DEMO_MODE && (
+            <p style={{ fontSize: '0.85rem', color: '#999', marginTop: '-0.5rem', marginBottom: '1rem', fontStyle: 'italic' }}>
+              Try searching for "machine learning", "cloud computing", or "data science"
+            </p>
+          )}
           <div className="search-area">
             <input 
               type="text" 
@@ -462,11 +467,6 @@ function App() {
               searchStatus === '' && (
                 <div className="results-placeholder">
                   <p>Search results will appear here</p>
-                  {DEMO_MODE && (
-                    <p style={{ fontSize: '0.85rem', color: '#999', marginTop: '0.5rem', fontStyle: 'italic' }}>
-                      Try searching for "machine learning", "cloud computing", or "data science"
-                    </p>
-                  )}
                 </div>
               )
             )}
@@ -476,6 +476,11 @@ function App() {
         {/* 3. Q&A Section */}
         <section className="card">
           <h2>Ask AI</h2>
+          {DEMO_MODE && (
+            <p style={{ fontSize: '0.85rem', color: '#999', marginTop: '-0.5rem', marginBottom: '1rem', fontStyle: 'italic' }}>
+              Try to ask "What is machine learning?", "Tell me about cloud computing", or "What are data science best practices?"
+            </p>
+          )}
           <div className="chat-area">
             <div className="messages-container">
               {qaStatus === 'loading' && (
@@ -501,11 +506,6 @@ function App() {
               ) : (
                 <div className="messages-placeholder">
                   <p>Ask a question about your documents</p>
-                  {DEMO_MODE && (
-                    <p style={{ fontSize: '0.85rem', color: '#999', marginTop: '0.5rem', fontStyle: 'italic' }}>
-                      Try to ask "What is machine learning?", "Tell me about cloud computing", or "What are data science best practices?"
-                    </p>
-                  )}
                 </div>
               )}
             </div>
