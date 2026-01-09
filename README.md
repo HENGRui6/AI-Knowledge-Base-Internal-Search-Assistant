@@ -9,8 +9,8 @@
 
 An intelligent document management and search system powered by AI embeddings and semantic search. Upload documents, perform semantic search, and get AI-powered Q&A responses based on your document corpus.
 
-**🔗 Live Demo:** Coming soon (Vercel deployment in progress)  
-**📚 Documentation:** [Technical Deep Dive](./TECHNICAL_DEEP_DIVE.md) | [Quick Start](./QUICK_START.md)
+**Live Demo:** Coming soon (Vercel deployment in progress)  
+**Documentation:** [Technical Deep Dive](./TECHNICAL_DEEP_DIVE.md) | [Quick Start](./QUICK_START.md)
 
 ---
 
