@@ -151,16 +151,45 @@ function App() {
       <header className="App-header">
         <h1>AI Knowledge Base & Internal Search Assistant</h1>
         <p>Upload documents, search semantically, and ask AI questions</p>
-        <div style={{ 
-          background: '#FFF3CD', 
-          color: '#856404', 
-          padding: '0.5rem 1rem', 
-          borderRadius: '6px',
-          fontSize: '0.9rem',
-          marginTop: '0.5rem',
-          maxWidth: '600px'
+        
+        <div style={{
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: 'white',
+          padding: '1rem 1.5rem',
+          borderRadius: '8px',
+          marginTop: '1rem',
+          maxWidth: '800px',
+          margin: '1rem auto 0',
+          boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+          textAlign: 'left',
+          lineHeight: '1.6'
         }}>
-          <strong>Demo Mode:</strong> Using sample data (no backend required). Try searching for "machine learning", "cloud", or "data science"!
+          <div style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+            📌 Demo Preview Mode
+          </div>
+          <div style={{ fontSize: '0.95rem', marginBottom: '0.5rem' }}>
+            This is a UI demo with sample data for portfolio preview.
+          </div>
+          <div style={{ fontSize: '0.9rem', marginBottom: '0.75rem' }}>
+            <strong>Full AI Implementation:</strong> The complete system integrates OpenAI embeddings, 
+            AWS serverless architecture (S3, Lambda, DynamoDB, SNS), and GPT-4 RAG for real semantic 
+            search and Q&A.
+          </div>
+          <div style={{ fontSize: '0.9rem' }}>
+            <strong>View Source Code:</strong>{' '}
+            <a 
+              href="https://github.com/HENGRui6/AI-Knowledge-Base-Internal-Search-Assistant" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={{ 
+                color: '#FFD700', 
+                textDecoration: 'underline',
+                fontWeight: 'bold'
+              }}
+            >
+              GitHub Repository →
+            </a>
+          </div>
         </div>
       </header>
 

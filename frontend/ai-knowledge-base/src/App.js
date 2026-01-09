@@ -1,7 +1,11 @@
 import './App.css';
 import { useState } from 'react';
+import { getMockSearchResults, getMockQAResponse, MOCK_FILE_CONTENT } from './mockData';
 
 function App() {
+  // Demo Mode - use mock data instead of real backend
+  const DEMO_MODE = process.env.REACT_APP_DEMO_MODE === 'true';
+  
   // Backend URL - use environment variable in production, localhost in development
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8080';
   
@@ -236,6 +240,48 @@ function App() {
       <header className="app-header">
         <h1>AI Knowledge Base Search Assistant</h1>
         <p>Intelligent Document Search & Q&A System</p>
+        
+        {DEMO_MODE && (
+          <div style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
+            padding: '1rem 1.5rem',
+            borderRadius: '8px',
+            marginTop: '1rem',
+            maxWidth: '800px',
+            margin: '1rem auto 0',
+            boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+            textAlign: 'left',
+            lineHeight: '1.6'
+          }}>
+            <div style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+              📌 Demo Preview Mode
+            </div>
+            <div style={{ fontSize: '0.95rem', marginBottom: '0.5rem' }}>
+              This is a UI demo with sample data for portfolio preview.
+            </div>
+            <div style={{ fontSize: '0.9rem', marginBottom: '0.75rem' }}>
+              <strong>Full AI Implementation:</strong> The complete system integrates OpenAI embeddings, 
+              AWS serverless architecture (S3, Lambda, DynamoDB, SNS), and GPT-4 RAG for real semantic 
+              search and Q&A.
+            </div>
+            <div style={{ fontSize: '0.9rem' }}>
+              <strong>View Source Code:</strong>{' '}
+              <a 
+                href="https://github.com/HENGRui6/AI-Knowledge-Base-Internal-Search-Assistant" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{ 
+                  color: '#FFD700', 
+                  textDecoration: 'underline',
+                  fontWeight: 'bold'
+                }}
+              >
+                GitHub Repository →
+              </a>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Main Content */}
