@@ -253,15 +253,26 @@ function App() {
     // Demo mode: use mock data
     if (DEMO_MODE) {
       setTimeout(() => {
-        const mockResponse = getMockQAResponse(q);
-        const aiMessage = { 
-          type: 'ai', 
-          text: mockResponse.answer, 
-          sources: mockResponse.sources 
-        };
-        setMessages([...messages, userMessage, aiMessage]);
-        setQaStatus('');
-        console.log('Demo Q&A response:', mockResponse);
+        try {
+          const mockResponse = getMockQAResponse(q);
+          const aiMessage = { 
+            type: 'ai', 
+            text: mockResponse.answer || 'I apologize, but I could not generate a response for that question.',
+            sources: mockResponse.sources || []
+          };
+          // Use functional update to ensure we have the latest messages state
+          setMessages(prevMessages => [...prevMessages, aiMessage]);
+          setQaStatus('');
+          console.log('Demo Q&A response:', mockResponse);
+        } catch (error) {
+          console.error('Error in demo Q&A:', error);
+          setQaStatus('error');
+          setMessages(prevMessages => [...prevMessages, {
+            type: 'ai',
+            text: 'Sorry, an error occurred while processing your question.',
+            sources: []
+          }]);
+        }
       }, 1200);
       return;
     }
@@ -283,7 +294,8 @@ function App() {
           text: data.answer, 
           sources: data.sources 
         };
-        setMessages([...messages, userMessage, aiMessage]);
+        // Use functional update to ensure we have the latest messages state
+        setMessages(prevMessages => [...prevMessages, aiMessage]);
         setQaStatus('');
         console.log('AI answer:', data);
       } else {

@@ -93,11 +93,13 @@ export const MOCK_QA_RESPONSES = {
     sources: [
       {
         file_name: 'Machine_Learning_Introduction.pdf',
-        text: 'Machine learning is a subset of artificial intelligence that enables systems to learn and improve from experience without being explicitly programmed.'
+        text: 'Machine learning is a subset of artificial intelligence that enables systems to learn and improve from experience without being explicitly programmed.',
+        similarity: 0.92
       },
       {
         file_name: 'Data_Science_Best_Practices.pdf',
-        text: 'In data science, machine learning models are trained on historical data to make predictions about future outcomes.'
+        text: 'In data science, machine learning models are trained on historical data to make predictions about future outcomes.',
+        similarity: 0.85
       }
     ]
   },
@@ -106,11 +108,13 @@ export const MOCK_QA_RESPONSES = {
     sources: [
       {
         file_name: 'Cloud_Computing_Guide.txt',
-        text: 'Cloud computing delivers computing services including servers, storage, databases, networking, software, analytics, and intelligence over the Internet to offer faster innovation and flexible resources.'
+        text: 'Cloud computing delivers computing services including servers, storage, databases, networking, software, analytics, and intelligence over the Internet to offer faster innovation and flexible resources.',
+        similarity: 0.89
       },
       {
         file_name: 'Data_Science_Best_Practices.pdf',
-        text: 'Cloud platforms like AWS, Azure, and GCP provide scalable infrastructure for training large machine learning models.'
+        text: 'Cloud platforms like AWS, Azure, and GCP provide scalable infrastructure for training large machine learning models.',
+        similarity: 0.78
       }
     ]
   },
@@ -119,7 +123,8 @@ export const MOCK_QA_RESPONSES = {
     sources: [
       {
         file_name: 'Machine_Learning_Introduction.pdf',
-        text: 'This document provides a comprehensive introduction to machine learning concepts and applications.'
+        text: 'This document provides a comprehensive introduction to machine learning concepts and applications.',
+        similarity: 0.72
       }
     ]
   }
