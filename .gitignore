@@ -59,4 +59,5 @@ test-pypdf2/
 
 # Local-only tutorial (do not push)
 LOCAL_TUTORIAL.md
+MANUAL_GIT_HISTORY_CHECK.md
 
