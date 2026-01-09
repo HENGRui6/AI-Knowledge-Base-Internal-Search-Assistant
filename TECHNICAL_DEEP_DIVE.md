@@ -473,4 +473,3 @@ The demo version exists solely to provide a risk-free public showcase while the 
 ---
 
 **Questions?** See detailed code in the repository or ask during technical interview.
-

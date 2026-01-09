@@ -21,4 +21,3 @@ openai.api.key=sk-YOUR_OPENAI_API_KEY_HERE
 openai.model=gpt-4o
 openai.api.version=v1
 
-

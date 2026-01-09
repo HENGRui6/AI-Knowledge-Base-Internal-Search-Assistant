@@ -1,6 +1,16 @@
 # AI Knowledge Base & Internal Search Assistant
 
+![Java](https://img.shields.io/badge/Java-17-orange?logo=openjdk)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.0-brightgreen?logo=springboot)
+![React](https://img.shields.io/badge/React-18.2-blue?logo=react)
+![AWS](https://img.shields.io/badge/AWS-Lambda%20%7C%20S3%20%7C%20DynamoDB-orange?logo=amazonaws)
+![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4-412991?logo=openai)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+
 An intelligent document management and search system powered by AI embeddings and semantic search. Upload documents, perform semantic search, and get AI-powered Q&A responses based on your document corpus.
+
+**🔗 Live Demo:** Coming soon (Vercel deployment in progress)  
+**📚 Documentation:** [Technical Deep Dive](./TECHNICAL_DEEP_DIVE.md) | [Quick Start](./QUICK_START.md)
 
 ---
 

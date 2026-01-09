@@ -222,4 +222,3 @@ git checkout App.js
 **Your demo is now live, free, and risk-free!** 🎉
 
 For technical interviews, you can always deploy the full version temporarily and showcase real AWS/OpenAI integration.
-
