@@ -450,6 +450,11 @@ function App() {
               searchStatus === '' && (
                 <div className="results-placeholder">
                   <p>Search results will appear here</p>
+                  {DEMO_MODE && (
+                    <p style={{ fontSize: '0.85rem', color: '#999', marginTop: '0.5rem', fontStyle: 'italic' }}>
+                      Try searching for "machine learning", "cloud computing", or "data science"
+                    </p>
+                  )}
                 </div>
               )
             )}
@@ -485,66 +490,9 @@ function App() {
                 <div className="messages-placeholder">
                   <p>Ask a question about your documents</p>
                   {DEMO_MODE && (
-                    <div style={{ marginTop: '1.5rem', padding: '1rem', background: '#f5f5f5', borderRadius: '8px' }}>
-                      <div style={{ fontSize: '0.9rem', fontWeight: 'bold', marginBottom: '0.75rem', color: '#666' }}>
-                        Try asking:
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        {[
-                          'What is machine learning?',
-                          'Tell me about cloud computing',
-                          'What are data science best practices?'
-                        ].map((example, idx) => (
-                          <button
-                            key={idx}
-                            onClick={async () => {
-                              setQuestion(example);
-                              // Wait for state to update, then call handleAskQuestion
-                              await new Promise(resolve => setTimeout(resolve, 0));
-                              const q = example.trim();
-                              if (!q) return;
-                              
-                              const userMessage = { type: 'user', text: q };
-                              setMessages([userMessage]);
-                              setQuestion('');
-                              setQaStatus('loading');
-                              
-                              setTimeout(() => {
-                                const mockResponse = getMockQAResponse(q);
-                                const aiMessage = { 
-                                  type: 'ai', 
-                                  text: mockResponse.answer, 
-                                  sources: mockResponse.sources 
-                                };
-                                setMessages([userMessage, aiMessage]);
-                                setQaStatus('');
-                              }, 1200);
-                            }}
-                            style={{
-                              padding: '0.5rem 1rem',
-                              background: 'white',
-                              border: '1px solid #ddd',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              textAlign: 'left',
-                              fontSize: '0.9rem',
-                              color: '#333',
-                              transition: 'all 0.2s'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.target.style.background = '#f0f0f0';
-                              e.target.style.borderColor = '#667eea';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.background = 'white';
-                              e.target.style.borderColor = '#ddd';
-                            }}
-                          >
-                            {example}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                    <p style={{ fontSize: '0.85rem', color: '#999', marginTop: '0.5rem', fontStyle: 'italic' }}>
+                      Try to ask "What is machine learning?", "Tell me about cloud computing", or "What are data science best practices?"
+                    </p>
                   )}
                 </div>
               )}
