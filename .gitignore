@@ -43,6 +43,8 @@ delete-*.ps1
 cleanup-orphan-*.ps1
 upload-docs.ps1
 rename-news-articles.ps1
+install-git-hooks.ps1
+*-security*.ps1
 
 # Lambda deployment packages
 lambda-deployment-package.zip
