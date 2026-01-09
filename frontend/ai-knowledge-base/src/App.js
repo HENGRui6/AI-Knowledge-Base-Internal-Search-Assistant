@@ -9,6 +9,16 @@ function App() {
   // Backend URL - use environment variable in production, localhost in development
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8080';
   
+  // Debug: Log current mode (only in development)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('=== App Mode Debug ===');
+    console.log('DEMO_MODE:', DEMO_MODE);
+    console.log('REACT_APP_DEMO_MODE:', process.env.REACT_APP_DEMO_MODE);
+    console.log('BACKEND_URL:', BACKEND_URL);
+    console.log('Mode:', DEMO_MODE ? 'DEMO (using mock data)' : 'FULL (using real backend)');
+    console.log('====================');
+  }
+  
   // We will add JavaScript here step by step
   // Upload-related state
   const [selectedFile, setSelectedFile] = useState(null);
@@ -76,6 +86,15 @@ function App() {
   
     // Set status to uploading
     setUploadStatus('uploading');
+
+    // Demo mode: simulate upload
+    if (DEMO_MODE) {
+      setTimeout(() => {
+        setUploadStatus('success');
+        console.log('Demo upload successful!');
+      }, 1000);
+      return;
+    }
   
   try {
     // Create FormData and append file and userId
@@ -114,6 +133,17 @@ function App() {
     // Set loading status
     setSearchStatus('loading');
 
+    // Demo mode: use mock data
+    if (DEMO_MODE) {
+      setTimeout(() => {
+        const mockResults = getMockSearchResults(query);
+        setSearchResults(mockResults);
+        setSearchStatus('');
+        console.log('Demo search results:', mockResults);
+      }, 800);
+      return;
+    }
+
     try {
       // Call backend search API
       const response = await fetch(`${BACKEND_URL}/api/search`, {
@@ -139,6 +169,22 @@ function App() {
 
   // Handle file download
   const handleDownload = async (documentId, fileName) => {
+    // Demo mode: simulate download
+    if (DEMO_MODE) {
+      const mockContent = MOCK_FILE_CONTENT[documentId] || MOCK_FILE_CONTENT['demo-1'];
+      const blob = new Blob([mockContent], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName || 'demo-document.txt';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      console.log('Demo download successful!');
+      return;
+    }
+
     try {
       console.log('Downloading:', documentId, fileName);
       
@@ -203,6 +249,22 @@ function App() {
     // Clear input and set loading status
     setQuestion('');
     setQaStatus('loading');
+
+    // Demo mode: use mock data
+    if (DEMO_MODE) {
+      setTimeout(() => {
+        const mockResponse = getMockQAResponse(q);
+        const aiMessage = { 
+          type: 'ai', 
+          text: mockResponse.answer, 
+          sources: mockResponse.sources 
+        };
+        setMessages([...messages, userMessage, aiMessage]);
+        setQaStatus('');
+        console.log('Demo Q&A response:', mockResponse);
+      }, 1200);
+      return;
+    }
 
     try {
       // Call backend Q&A API
