@@ -35,14 +35,32 @@ npm install
 npm start
 ```
 
-## Verify
-- Upload a TXT/PDF via UI; expect “Upload successful!”
-- Search “machine learning”; expect relevant BBC/ML docs
-- Ask AI “What is machine learning?”; expect cited sources
+## User Setup
 
-## Useful Scripts
-- `list-all-documents.ps1` — list uploaded docs via backend
-- `cleanup-s3-only.ps1` — remove all docs (S3 + DynamoDB) **(destructive)**
-- `recreate-dynamodb-tables.ps1` — recreate tables (needs AWS CLI)
+Before using the system, you need to:
+1. Create a Users table in AWS DynamoDB with partition key `id` (String)
+2. Add user accounts to the Users table (manually or via DataInitializer)
+3. Configure user credentials based on your security requirements
+
+## Verify
+
+1. **Login**: Use your configured credentials to login at http://localhost:3000
+2. **Upload**: Upload a TXT/PDF via UI (ADMIN role only); expect "Upload successful!"
+3. **Search**: Search "machine learning"; expect relevant docs with similarity scores
+4. **Ask AI**: Ask "What is machine learning?"; expect cited sources
+5. **Test Roles**: Verify USER role cannot upload/delete documents, only ADMIN can
+
+## Project Management
+
+**Start Project:**
+```powershell
+.\start-project.ps1
+```
+
+**Stop Project:**
+Close the PowerShell terminal windows that were opened for backend and frontend servers.
+
+**Logs:**
+Check the terminal windows for backend and frontend logs.
 
 

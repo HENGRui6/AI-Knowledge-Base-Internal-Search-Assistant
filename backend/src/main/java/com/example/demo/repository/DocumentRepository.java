@@ -41,8 +41,39 @@ public class DocumentRepository {
 
     // Get all documents
     public List<Document> findAll() {
+        System.out.println("========== DocumentRepository.findAll() START ==========");
         List<Document> documents = new ArrayList<>();
-        documentTable.scan().items().forEach(documents::add);
+        try {
+            System.out.println("Starting DynamoDB scan...");
+            int count = 0;
+            for (Document doc : documentTable.scan().items()) {
+                count++;
+                try {
+                    System.out.println("Processing document " + count + ": " + doc.getId() + " - " + doc.getFileName());
+                    // Ensure old documents have default values for new fields
+                    if (doc.getProcessedAt() == null && "PROCESSED".equals(doc.getStatus())) {
+                        doc.setProcessedAt(doc.getUploadDate() != null ? doc.getUploadDate().toString() : null);
+                    }
+                    if (doc.getChunksCount() == null) {
+                        doc.setChunksCount(0);
+                    }
+                    if (doc.getErrorMessage() == null) {
+                        doc.setErrorMessage("");
+                    }
+                    documents.add(doc);
+                    System.out.println("  -> Successfully added document");
+                } catch (Exception e) {
+                    System.err.println("Error processing document: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+            System.out.println("Scan completed. Found " + count + " documents in DynamoDB");
+            System.out.println("Successfully processed " + documents.size() + " documents");
+        } catch (Exception e) {
+            System.err.println("Error scanning documents: " + e.getMessage());
+            e.printStackTrace();
+        }
+        System.out.println("========== DocumentRepository.findAll() END ==========");
         return documents;
     }
 

@@ -1,23 +1,44 @@
 import './App.css';
-import { useState } from 'react';
-import { getMockSearchResults, getMockQAResponse, MOCK_FILE_CONTENT } from './mockData';
+import { useState, useEffect, useCallback } from 'react';
+
+function groupSearchResultsByFile(results) {
+  if (!results || !Array.isArray(results) || results.length === 0) {
+    return [];
+  }
+  
+  const grouped = {};
+  for (const chunk of results) {
+    if (!chunk || !chunk.file_name) {
+      continue;
+    }
+    
+    const fileName = chunk.file_name;
+    if (!grouped[fileName]) {
+      grouped[fileName] = {
+        file_name: fileName,
+        document_id: chunk.document_id,
+        chunks: [],
+        highest_similarity: 0
+      };
+    }
+    grouped[fileName].chunks.push({
+      chunk_id: chunk.chunk_id,
+      text: chunk.text,
+      similarity: chunk.similarity || 0
+    });
+
+    if ((chunk.similarity || 0) > grouped[fileName].highest_similarity) {
+      grouped[fileName].highest_similarity = chunk.similarity || 0;
+    }
+  }
+  return Object.values(grouped).sort((a, b) => 
+    b.highest_similarity - a.highest_similarity
+  );
+}
 
 function App() {
-  // Demo Mode - use mock data instead of real backend
-  const DEMO_MODE = process.env.REACT_APP_DEMO_MODE === 'true';
-  
   // Backend URL - use environment variable in production, localhost in development
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8080';
-  
-  // Debug: Log current mode (only in development)
-  if (process.env.NODE_ENV === 'development') {
-    console.log('=== App Mode Debug ===');
-    console.log('DEMO_MODE:', DEMO_MODE);
-    console.log('REACT_APP_DEMO_MODE:', process.env.REACT_APP_DEMO_MODE);
-    console.log('BACKEND_URL:', BACKEND_URL);
-    console.log('Mode:', DEMO_MODE ? 'DEMO (using mock data)' : 'FULL (using real backend)');
-    console.log('====================');
-  }
   
   // We will add JavaScript here step by step
   // Upload-related state
@@ -35,6 +56,144 @@ function App() {
   const [messages, setMessages] = useState([]);               // Chat history (questions & answers)
   const [qaStatus, setQaStatus] = useState('');               // Q&A status: '' | 'loading' | 'error'
 
+  // Admin-related state
+  const [allDocuments, setAllDocuments] = useState([]);       // All documents in the system
+  const [adminStatus, setAdminStatus] = useState('');         // Admin status: '' | 'loading' | 'error'
+
+  // Authentication-related state
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);       // {username, role}
+  const [authToken, setAuthToken] = useState(null);
+  const [showLogin, setShowLogin] = useState(true);           // Show login page or main app
+  const [loginMode, setLoginMode] = useState('login');        // 'login' or 'register'
+  const [authError, setAuthError] = useState('');
+  
+  // Login form state
+  const [loginUsername, setLoginUsername] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+
+  // Check for existing token on mount
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      // Verify token
+      fetch(`${BACKEND_URL}/api/auth/verify`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.valid === 'true' || data.username) {
+          setAuthToken(token);
+          setCurrentUser({ username: data.username, role: data.role });
+          setIsAuthenticated(true);
+          setShowLogin(false);
+        } else {
+          localStorage.removeItem('authToken');
+        }
+      })
+      .catch(() => {
+        localStorage.removeItem('authToken');
+      });
+    }
+  }, [BACKEND_URL]);
+
+  // Handle login
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setAuthError('');
+    
+    if (!loginUsername || !loginPassword) {
+      setAuthError('Please enter username and password');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: loginUsername,
+          password: loginPassword
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem('authToken', data.token);
+        setAuthToken(data.token);
+        setCurrentUser({ username: data.username, role: data.role });
+        setIsAuthenticated(true);
+        setShowLogin(false);
+        setLoginUsername('');
+        setLoginPassword('');
+      } else {
+        setAuthError(data.error || 'Login failed');
+      }
+    } catch (error) {
+      setAuthError('Network error: ' + error.message);
+    }
+  };
+
+  // Handle register
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setAuthError('');
+    
+    if (!loginUsername || !loginPassword) {
+      setAuthError('Please enter username and password');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: loginUsername,
+          password: loginPassword,
+          role: 'USER'  // Default role for new registrations
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('Registration successful! Please login.');
+        setLoginMode('login');
+        setLoginPassword('');
+      } else {
+        setAuthError(data.error || 'Registration failed');
+      }
+    } catch (error) {
+      setAuthError('Network error: ' + error.message);
+    }
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    setAuthToken(null);
+    setCurrentUser(null);
+    setIsAuthenticated(false);
+    setShowLogin(true);
+    setLoginUsername('');
+    setLoginPassword('');
+    setSearchResults([]);
+    setMessages([]);
+    setAllDocuments([]);
+  };
+
+  // Helper function to get auth headers
+  const getAuthHeaders = () => {
+    const headers = { 'Content-Type': 'application/json' };
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+    return headers;
+  };
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -86,31 +245,33 @@ function App() {
   
     // Set status to uploading
     setUploadStatus('uploading');
-
-    // Demo mode: simulate upload
-    if (DEMO_MODE) {
-      setTimeout(() => {
-        setUploadStatus('success');
-        console.log('Demo upload successful!');
-      }, 1000);
-      return;
-    }
   
   try {
     // Create FormData and append file and userId
     const formData = new FormData();
     formData.append('file', selectedFile);
-    formData.append('userId', 'test-user');  // Using test user for now
+    formData.append('userId', currentUser?.username || 'anonymous');
 
-    // Call backend API directly (bypass dev proxy issues)
+    // Call backend API with auth header
+    const headers = {};
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+
     const response = await fetch(`${BACKEND_URL}/api/documents/upload`, {
       method: 'POST',
+      headers: headers,
       body: formData
     });
   
       if (response.ok) {
         setUploadStatus('success');
         console.log('Upload successful!');
+        
+        // Refresh document list after successful upload
+        setTimeout(() => {
+          fetchDocuments();
+        }, 500);
       } else {
         setUploadStatus('error');
         console.error('Upload failed');
@@ -133,17 +294,6 @@ function App() {
     // Set loading status
     setSearchStatus('loading');
 
-    // Demo mode: use mock data
-    if (DEMO_MODE) {
-      setTimeout(() => {
-        const mockResults = getMockSearchResults(query);
-        setSearchResults(mockResults);
-        setSearchStatus('');
-        console.log('Demo search results:', mockResults);
-      }, 800);
-      return;
-    }
-
     try {
       // Call backend search API
       const response = await fetch(`${BACKEND_URL}/api/search`, {
@@ -154,9 +304,11 @@ function App() {
 
       if (response.ok) {
         const data = await response.json();
-        setSearchResults(data.results || data);
+        const rawResults = data.results || data;
+        const groupedResults = groupSearchResultsByFile(rawResults);
+        setSearchResults(groupedResults);
         setSearchStatus('');
-        console.log('Search results:', data);
+        console.log('Grouped search results:', groupedResults);
       } else {
         setSearchStatus('error');
         console.error('Search failed');
@@ -169,22 +321,6 @@ function App() {
 
   // Handle file download
   const handleDownload = async (documentId, fileName) => {
-    // Demo mode: simulate download
-    if (DEMO_MODE) {
-      const mockContent = MOCK_FILE_CONTENT[documentId] || MOCK_FILE_CONTENT['demo-1'];
-      const blob = new Blob([mockContent], { type: 'text/plain' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileName || 'demo-document.txt';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      console.log('Demo download successful!');
-      return;
-    }
-
     try {
       console.log('Downloading:', documentId, fileName);
       
@@ -250,33 +386,6 @@ function App() {
     setQuestion('');
     setQaStatus('loading');
 
-    // Demo mode: use mock data
-    if (DEMO_MODE) {
-      setTimeout(() => {
-        try {
-          const mockResponse = getMockQAResponse(q);
-          const aiMessage = { 
-            type: 'ai', 
-            text: mockResponse.answer || 'I apologize, but I could not generate a response for that question.',
-            sources: mockResponse.sources || []
-          };
-          // Use functional update to ensure we have the latest messages state
-          setMessages(prevMessages => [...prevMessages, aiMessage]);
-          setQaStatus('');
-          console.log('Demo Q&A response:', mockResponse);
-        } catch (error) {
-          console.error('Error in demo Q&A:', error);
-          setQaStatus('error');
-          setMessages(prevMessages => [...prevMessages, {
-            type: 'ai',
-            text: 'Sorry, an error occurred while processing your question.',
-            sources: []
-          }]);
-        }
-      }, 1200);
-      return;
-    }
-
     try {
       // Call backend Q&A API
       const response = await fetch(`${BACKEND_URL}/api/qa`, {
@@ -307,6 +416,153 @@ function App() {
       console.error('Q&A error:', error);
     }
   };
+
+  // Function to fetch all documents (extracted for reuse after upload/delete)
+  const fetchDocuments = useCallback(async () => {
+    // Only fetch if user is authenticated and is ADMIN
+    if (!isAuthenticated || currentUser?.role !== 'ADMIN') {
+      return;
+    }
+
+    setAdminStatus('loading');
+    try {
+      const headers = {};
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      }
+
+      const response = await fetch(`${BACKEND_URL}/api/documents/all`, {
+        headers: headers
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Fetched documents:', data);
+        setAllDocuments(data);
+        setAdminStatus('');
+      } else {
+        setAdminStatus('error');
+        console.error('Failed to fetch documents, status:', response.status);
+      }
+    } catch (error) {
+      setAdminStatus('error');
+      console.error('Error fetching documents:', error);
+    }
+  }, [BACKEND_URL, isAuthenticated, currentUser, authToken]);
+
+  // Fetch all documents on component mount (Admin section)
+  useEffect(() => {
+    fetchDocuments();
+  }, [fetchDocuments]);
+
+  // Handle document deletion
+  const handleDeleteDocument = async (documentId, fileName) => {
+    // Confirm deletion
+    if (!window.confirm(`Are you sure you want to delete "${fileName}"?\n\nThis will permanently remove the file and all its embeddings.`)) {
+      return;
+    }
+
+    try {
+      const headers = {};
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      }
+
+      const response = await fetch(`${BACKEND_URL}/api/documents/${documentId}`, {
+        method: 'DELETE',
+        headers: headers
+      });
+
+      if (response.ok) {
+        alert(`Successfully deleted "${fileName}"`);
+        // Refresh document list from server
+        fetchDocuments();
+      } else {
+        const error = await response.json();
+        alert(`Failed to delete document: ${error.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert('Error deleting document: ' + error.message);
+    }
+  };
+
+  // Show login page if not authenticated
+  if (showLogin) {
+    return (
+      <div className="App">
+        <div className="login-container">
+          <div className="login-box">
+            <h1>AI Knowledge Base</h1>
+            <p className="login-subtitle">Sign in to continue</p>
+            
+            {authError && (
+              <div className="auth-error">{authError}</div>
+            )}
+            
+            <form onSubmit={loginMode === 'login' ? handleLogin : handleRegister}>
+              <div className="form-group">
+                <label>Username</label>
+                <input
+                  type="text"
+                  value={loginUsername}
+                  onChange={(e) => setLoginUsername(e.target.value)}
+                  placeholder="Enter username"
+                  required
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>Password</label>
+                <input
+                  type="password"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  placeholder="Enter password"
+                  required
+                />
+              </div>
+              
+              <button type="submit" className="login-btn">
+                {loginMode === 'login' ? 'Login' : 'Register'}
+              </button>
+            </form>
+            
+            <div className="login-toggle">
+              {loginMode === 'login' ? (
+                <p>
+                  Don't have an account?{' '}
+                  <span onClick={() => { setLoginMode('register'); setAuthError(''); }}>
+                    Register
+                  </span>
+                </p>
+              ) : (
+                <p>
+                  Already have an account?{' '}
+                  <span onClick={() => { setLoginMode('login'); setAuthError(''); }}>
+                    Login
+                  </span>
+                </p>
+              )}
+            </div>
+            
+            <div className="demo-credentials">
+              <p style={{ fontSize: '0.9rem', color: '#666', marginTop: '2rem' }}>
+                <strong>Test Credentials:</strong>
+              </p>
+              <p style={{ fontSize: '0.85rem', color: '#888' }}>
+                Admin: username: <code>admin</code> / password: <code>admin123</code>
+              </p>
+              <p style={{ fontSize: '0.85rem', color: '#888' }}>
+                User: username: <code>user</code> / password: <code>user123</code>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="App">
 
@@ -315,52 +571,23 @@ function App() {
         <h1>AI Knowledge Base Search Assistant</h1>
         <p>Intelligent Document Search & Q&A System</p>
         
-        {DEMO_MODE && (
-          <div style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: 'white',
-            padding: '1rem 1.5rem',
-            borderRadius: '8px',
-            marginTop: '1rem',
-            maxWidth: '800px',
-            margin: '1rem auto 0',
-            boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
-            textAlign: 'left',
-            lineHeight: '1.6'
-          }}>
-            <div style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
-              📌 Demo Preview Mode
-            </div>
-            <div style={{ fontSize: '0.95rem', marginBottom: '0.5rem' }}>
-              This is a UI demo with sample data for portfolio preview.
-            </div>
-            <div style={{ fontSize: '0.9rem', marginBottom: '0.75rem' }}>
-              <strong>Full AI Implementation:</strong> The complete system integrates OpenAI embeddings, 
-              AWS serverless architecture (S3, Lambda, DynamoDB, SNS), and GPT-4 RAG for real semantic 
-              search and Q&A.
-            </div>
-            <div style={{ fontSize: '0.9rem' }}>
-              <strong>View Source Code:</strong>{' '}
-              <a 
-                href="https://github.com/HENGRui6/AI-Knowledge-Base-Internal-Search-Assistant" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                style={{ 
-                  color: '#FFD700', 
-                  textDecoration: 'underline',
-                  fontWeight: 'bold'
-                }}
-              >
-                GitHub Repository →
-              </a>
-            </div>
+        {/* User info and logout */}
+        {isAuthenticated && currentUser && (
+          <div className="user-info">
+            <span className="user-badge">
+              {currentUser.username} [{currentUser.role}]
+            </span>
+            <button onClick={handleLogout} className="logout-btn">
+              Logout
+            </button>
           </div>
         )}
       </header>
 
       {/* Main Content */}
       <main className="main-content">
-      {/* 1. Document Upload Section */}
+      {/* 1. Document Upload Section - ADMIN ONLY */}
+      {currentUser?.role === 'ADMIN' && (
       <section className="card">
         <h2>Document Management</h2>
         <div className="upload-area">
@@ -411,15 +638,11 @@ function App() {
           <p className="status-text error">Upload failed. Please try again.</p>
         )}
       </section>
+      )}
 
         {/* 2. Search Section */}
         <section className="card">
           <h2>Search Documents</h2>
-          {DEMO_MODE && (
-            <p style={{ fontSize: '0.85rem', color: '#999', marginTop: '-0.5rem', marginBottom: '1rem', fontStyle: 'italic' }}>
-              Try searching for "machine learning", "cloud computing", or "data science"
-            </p>
-          )}
           <div className="search-area">
             <input 
               type="text" 
@@ -440,25 +663,46 @@ function App() {
             
             {searchResults && searchResults.length > 0 ? (
               <ul className="results-list">
-                {searchResults.map((item, idx) => (
-                  <li key={idx}>
+                {searchResults.map((fileGroup, idx) => (
+                  <li key={idx} className="file-group">
                     <div className="result-header">
                       <h3>
-                        {item.file_name || 'Unknown file'}
+                        {fileGroup.file_name || 'Unknown file'}
+                        {fileGroup.chunks && fileGroup.chunks.length > 0 && (
+                          <span style={{ fontSize: '0.9rem', color: '#888', marginLeft: '10px' }}>
+                            ({fileGroup.chunks.length} chunk{fileGroup.chunks.length > 1 ? 's' : ''})
+                          </span>
+                        )}
                       </h3>
                       <button 
-                        onClick={() => handleDownload(item.document_id, item.file_name)}
+                        onClick={() => handleDownload(fileGroup.document_id, fileGroup.file_name)}
                         className="download-btn-inline"
                       >
                         Download
                       </button>
                     </div>
-                    <p>
-                      {(item.text || '').slice(0, 120)}
-                      {(item.text || '').length > 120 ? '...' : ''}
-                    </p>
-                    <div className="similarity">
-                    Similarity: {item.similarity ? `${getSimilarityLabel(item.similarity)} (${item.similarity.toFixed(3)})` : 'N/A'}
+
+                    <div className="similarity" style={{ marginBottom: '10px' }}>
+                      Best match: {getSimilarityLabel(fileGroup.highest_similarity || 0)} ({(fileGroup.highest_similarity || 0).toFixed(3)})
+                    </div>
+
+                    <div className="chunks-container">
+                      {fileGroup.chunks && fileGroup.chunks.map((chunk, chunkIdx) => (
+                        <div key={chunkIdx} className="chunk-item" style={{ 
+                          marginLeft: '15px', 
+                          marginBottom: '10px',
+                          paddingLeft: '15px',
+                          borderLeft: '2px solid #4A90E2'
+                        }}>
+                          <p style={{ fontSize: '0.9rem', color: '#000' }}>
+                            {(chunk.text || '').slice(0, 150)}
+                            {(chunk.text || '').length > 150 ? '...' : ''}
+                          </p>
+                          <div style={{ fontSize: '0.8rem', color: '#999' }}>
+                            Similarity: {getSimilarityLabel(chunk.similarity || 0)} ({(chunk.similarity || 0).toFixed(3)})
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </li>
                 ))}
@@ -476,11 +720,6 @@ function App() {
         {/* 3. Q&A Section */}
         <section className="card">
           <h2>Ask AI</h2>
-          {DEMO_MODE && (
-            <p style={{ fontSize: '0.85rem', color: '#999', marginTop: '-0.5rem', marginBottom: '1rem', fontStyle: 'italic' }}>
-              Try to ask "What is machine learning?", "Tell me about cloud computing", or "What are data science best practices?"
-            </p>
-          )}
           <div className="chat-area">
             <div className="messages-container">
               {qaStatus === 'loading' && (
@@ -520,6 +759,84 @@ function App() {
             </div>
           </div>
         </section>
+
+        {/* 4. Admin Section - Document Management - ADMIN ONLY */}
+        {currentUser?.role === 'ADMIN' && (
+        <section className="card">
+          <h2>Document Management</h2>
+          <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1rem' }}>
+            View and manage all uploaded documents
+          </p>
+          
+          {adminStatus === 'loading' && (
+            <p className="loading-indicator">Loading documents...</p>
+          )}
+          
+          {adminStatus === 'error' && (
+            <p className="status-text error">Failed to load documents. Please try again.</p>
+          )}
+          
+          {allDocuments && allDocuments.length > 0 ? (
+            <div className="admin-table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>File Name</th>
+                    <th>Size</th>
+                    <th>Upload Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allDocuments.map((doc) => (
+                    <tr key={doc.id}>
+                      <td className="file-name-cell">{doc.fileName}</td>
+                      <td>{((doc.fileSize || 0) / 1024).toFixed(2)} KB</td>
+                      <td>
+                        {doc.uploadDate 
+                          ? new Date(doc.uploadDate).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })
+                          : 'N/A'}
+                      </td>
+                      <td>
+                        <span className={`status-badge ${(doc.status || '').toLowerCase()}`}>
+                          {doc.status || 'UNKNOWN'}
+                        </span>
+                      </td>
+                      <td>
+                        <button 
+                          onClick={() => handleDownload(doc.id, doc.fileName)}
+                          className="action-btn download-btn"
+                          title="Download document"
+                        >
+                          Download
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteDocument(doc.id, doc.fileName)}
+                          className="action-btn delete-btn"
+                          title="Delete document"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            adminStatus === '' && (
+              <div className="results-placeholder">
+                <p>No documents found</p>
+              </div>
+            )
+          )}
+        </section>
+        )}
       </main>
     </div>
   );

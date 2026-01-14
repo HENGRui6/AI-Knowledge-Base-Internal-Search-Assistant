@@ -60,9 +60,19 @@ SNS_TOPICARN=arn:aws:sns:us-east-1:YOUR_ACCOUNT:DocumentProcessingTopic
 OPENAI_API_KEY=sk-your_openai_key
 OPENAI_MODEL=gpt-4o
 
+# JWT Configuration (IMPORTANT: Use a strong random secret key!)
+JWT_SECRET=your_random_secret_key_at_least_256_bits
+JWT_EXPIRATION=86400000
+
 # Server Configuration
 PORT=8080
 ```
+
+**IMPORTANT SECURITY NOTES:**
+- Never commit `application.properties` with real credentials to Git
+- Use strong, randomly generated JWT secret keys (at least 256 bits)
+- Rotate JWT secrets periodically in production
+- Use environment variables for all sensitive configuration
 
 **IMPORTANT:** Variable names must match `application.properties` (without dots)
 - `aws.accessKeyId` → `AWS_ACCESSKEYID`
@@ -247,12 +257,11 @@ Once deployed, add to your resume:
 
 ```
 AI Knowledge Base & Search Assistant
-Live Demo: https://ai-kb.vercel.app
 GitHub: https://github.com/yourusername/ai-knowledge-base
-Backend API: https://ai-kb-backend.up.railway.app
 
 Technologies: React, Spring Boot, AWS (S3, Lambda, DynamoDB), OpenAI
-Features: Semantic search, RAG-based Q&A, drag-and-drop upload
+Features: JWT Authentication, Semantic search, RAG-based Q&A, Document management
+Security: Role-based access control, Idempotent processing, Data cleanup
 ```
 
 ---

@@ -1,11 +1,13 @@
 package com.example.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
 import java.time.Instant;
 
 @DynamoDbBean
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Document {
     // Properties
     private String id;              // Document UUID
@@ -15,7 +17,10 @@ public class Document {
     private Long fileSize;          // File size in bytes
     private String contentType;     // MIME type (e.g., application/pdf)
     private Instant uploadDate;     // Upload timestamp
-    private String status;          // Processing status: UPLOADED, PROCESSING, COMPLETED, FAILED
+    private String status;          // Processing status: PENDING, PROCESSING, PROCESSED, FAILED
+    private String processedAt;     // Processing completion timestamp (stored as string to handle format variations)
+    private Integer chunksCount;    // Number of chunks processed
+    private String errorMessage;    // Error message if status is FAILED
     
     // Default constructor (required by DynamoDB)
     public Document() {
@@ -32,6 +37,9 @@ public class Document {
         this.contentType = contentType;
         this.uploadDate = uploadDate;
         this.status = status;
+        this.processedAt = null;
+        this.chunksCount = null;
+        this.errorMessage = null;
     }
     
     // Getters
@@ -68,6 +76,18 @@ public class Document {
         return status;
     }
     
+    public String getProcessedAt() {
+        return processedAt;
+    }
+    
+    public Integer getChunksCount() {
+        return chunksCount;
+    }
+    
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+    
     // Setters
     public void setId(String id) {
         this.id = id;
@@ -101,6 +121,18 @@ public class Document {
         this.status = status;
     }
     
+    public void setProcessedAt(String processedAt) {
+        this.processedAt = processedAt;
+    }
+    
+    public void setChunksCount(Integer chunksCount) {
+        this.chunksCount = chunksCount;
+    }
+    
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
+    
     // toString method for debugging
     @Override
     public String toString() {
@@ -113,6 +145,9 @@ public class Document {
                 ", contentType='" + contentType + '\'' +
                 ", uploadDate=" + uploadDate +
                 ", status='" + status + '\'' +
+                ", processedAt=" + processedAt +
+                ", chunksCount=" + chunksCount +
+                ", errorMessage='" + errorMessage + '\'' +
                 '}';
     }
 }
