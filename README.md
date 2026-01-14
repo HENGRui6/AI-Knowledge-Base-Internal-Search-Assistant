@@ -248,17 +248,14 @@ User Login → Frontend → Backend → UserRepository (Find user by username)
 - Protected endpoints requiring authentication
 - Automatic token validation on all requests
 
-### Default Test Users
+### User Setup
 
-```
-Admin Account:
-Username: admin
-Password: admin123
+The system uses DynamoDB Users table for authentication. You need to:
+1. Create a Users table in AWS DynamoDB with partition key `id` (String)
+2. Add users manually or use the DataInitializer to create default users on first startup
+3. Configure your own user accounts based on your security requirements
 
-User Account:
-Username: user
-Password: user123
-```
+**Note:** Default users are only created if you have DataInitializer enabled and the Users table is empty.
 
 ---
 

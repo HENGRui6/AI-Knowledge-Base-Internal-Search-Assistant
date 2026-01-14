@@ -31,6 +31,10 @@ Thumbs.db
 *.csv
 *accessKeys*
 
+# Security keys
+*jwt.secret*
+*JWT_SECRET*
+
 # Test files
 *.bak
 

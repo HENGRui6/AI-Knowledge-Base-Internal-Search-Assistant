@@ -21,3 +21,7 @@ openai.api.key=sk-YOUR_OPENAI_API_KEY_HERE
 openai.model=gpt-4o
 openai.api.version=v1
 
+
+# JWT Configuration (IMPORTANT: Change this to a random secret key in production!)
+jwt.signing.key=YOUR_RANDOM_SECRET_KEY_HERE_AT_LEAST_256_BITS
+jwt.expiration=86400000

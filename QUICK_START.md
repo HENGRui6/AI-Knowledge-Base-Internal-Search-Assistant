@@ -35,25 +35,20 @@ npm install
 npm start
 ```
 
-## First Time Login
+## User Setup
 
-The system will automatically create default users on first startup:
-
-**Admin Account (Full Access):**
-- Username: `admin`
-- Password: `admin123`
-
-**User Account (Read-Only):**
-- Username: `user`
-- Password: `user123`
+Before using the system, you need to:
+1. Create a Users table in AWS DynamoDB with partition key `id` (String)
+2. Add user accounts to the Users table (manually or via DataInitializer)
+3. Configure user credentials based on your security requirements
 
 ## Verify
 
-1. **Login**: Use admin/admin123 to login at http://localhost:3000
-2. **Upload**: Upload a TXT/PDF via UI (ADMIN only); expect "Upload successful!"
+1. **Login**: Use your configured credentials to login at http://localhost:3000
+2. **Upload**: Upload a TXT/PDF via UI (ADMIN role only); expect "Upload successful!"
 3. **Search**: Search "machine learning"; expect relevant docs with similarity scores
 4. **Ask AI**: Ask "What is machine learning?"; expect cited sources
-5. **Logout & Login as User**: Verify USER role cannot upload/delete documents
+5. **Test Roles**: Verify USER role cannot upload/delete documents, only ADMIN can
 
 ## Project Management
 
