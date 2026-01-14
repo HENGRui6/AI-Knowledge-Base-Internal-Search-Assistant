@@ -9,7 +9,6 @@
 
 An intelligent document management and search system powered by AI embeddings and semantic search. Upload documents, perform semantic search, and get AI-powered Q&A responses based on your document corpus.
 
-**Live Demo:** Coming soon (Vercel deployment in progress)  
 **Documentation:** [Technical Deep Dive](./TECHNICAL_DEEP_DIVE.md) | [Quick Start](./QUICK_START.md)
 
 ---
@@ -17,10 +16,13 @@ An intelligent document management and search system powered by AI embeddings an
 ## Project Overview
 
 This project is a full-stack enterprise-grade knowledge base system that allows users to:
-- **Upload documents** (PDF, TXT) to cloud storage
+- **User Authentication** with JWT-based login system
+- **Role-based Access Control** (ADMIN and USER roles)
+- **Upload documents** (PDF, TXT) to cloud storage (ADMIN only)
 - **Semantic search** using OpenAI embeddings for finding relevant content
 - **AI-powered Q&A** using GPT models with RAG (Retrieval-Augmented Generation)
 - **Download documents** from the search results
+- **Document Management** with delete functionality (ADMIN only)
 
 ---
 
@@ -39,6 +41,44 @@ This project is a full-stack enterprise-grade knowledge base system that allows 
                         │     GPT      │         │ (Document   │
                         └──────────────┘         │ Processing) │
                                                  └─────────────┘
+```
+
+---
+
+## Database Schema
+
+### DynamoDB Tables
+
+#### **Users Table**
+```
+Partition Key: id (String) - UUID
+Attributes:
+  - username (String) - Unique username
+  - password (String) - BCrypt hashed password
+  - role (String) - "USER" or "ADMIN"
+  - createdAt (Number) - Timestamp
+```
+
+#### **Documents Table**
+```
+Partition Key: id (String) - Document UUID
+Attributes:
+  - fileName (String) - Original file name
+  - fileSize (Number) - File size in bytes
+  - uploadDate (Number) - Upload timestamp
+  - status (String) - "PENDING" or "PROCESSED"
+  - userId (String) - Uploader's user ID
+  - s3Key (String) - S3 object key
+```
+
+#### **DocumentChunks Table**
+```
+Partition Key: documentId (String)
+Sort Key: chunkIndex (Number)
+Attributes:
+  - text (String) - Chunk text content
+  - embedding (List of Numbers) - 1536-dimension vector
+  - fileName (String) - Source file name
 ```
 
 ---
@@ -70,6 +110,9 @@ This project is a full-stack enterprise-grade knowledge base system that allows 
 | **Java** | 17 LTS | Programming Language | Type-safe, robust, excellent for enterprise applications; long-term support ensures stability |
 | **Maven** | 3.9+ | Build Tool | Industry standard for Java dependency management; reproducible builds; central repository |
 | **Spring Web** | Included | REST API | @RestController annotations for clean API design; built-in request/response handling |
+| **Spring Security** | 6.2.0 | Authentication & Authorization | Industry-standard security framework; JWT token management; role-based access control |
+| **JJWT** | 0.11.5 | JWT Library | JSON Web Token generation and validation; secure stateless authentication |
+| **BCrypt** | Included | Password Encryption | Industry-standard password hashing; salted hashing prevents rainbow table attacks |
 
 **Why Spring Boot?**
 - **Production-ready**: Built-in health checks, metrics, and error handling
@@ -152,12 +195,69 @@ User query → Frontend → Backend → OpenAI API (Convert query to embedding)
 ### 3. **Q&A Flow**
 ```
 User question → Frontend → Backend → Semantic Search (Find relevant docs)
-                                            ↓
-                              Build context from top 5 results
-                                            ↓
-                        OpenAI GPT API (Generate answer with context)
-                                            ↓
-                            Return answer + sources
+                                           ↓
+                             Build context from top 5 results
+                                           ↓
+                       OpenAI GPT API (Generate answer with context)
+                                           ↓
+                           Return answer + sources
+```
+
+### 4. **Authentication Flow**
+```
+User Login → Frontend → Backend → UserRepository (Find user by username)
+                                       ↓
+                            BCrypt password verification
+                                       ↓
+                         JwtUtil (Generate JWT token)
+                                       ↓
+                    Return token + user info to Frontend
+                                       ↓
+                  Frontend stores token in localStorage
+                                       ↓
+           All subsequent API calls include Authorization header
+                                       ↓
+            JwtAuthenticationFilter validates token
+                                       ↓
+              @PreAuthorize checks role permissions
+```
+
+---
+
+## Authentication & Authorization
+
+### User Roles
+
+- **ADMIN**: Full access to all features
+  - Upload documents
+  - Delete documents
+  - View all documents
+  - Search documents
+  - Ask questions
+
+- **USER**: Read-only access
+  - Search documents
+  - Ask questions
+  - Cannot upload or delete documents
+
+### Security Features
+
+- JWT-based stateless authentication (24-hour token validity)
+- BCrypt password hashing with salts
+- Role-based access control with @PreAuthorize
+- Protected endpoints requiring authentication
+- Automatic token validation on all requests
+
+### Default Test Users
+
+```
+Admin Account:
+Username: admin
+Password: admin123
+
+User Account:
+Username: user
+Password: user123
 ```
 
 ---
@@ -173,26 +273,33 @@ AI Knowledge Base & Internal Search Assistant/
 │   │   │   ├── java/com/example/demo/
 │   │   │   │   ├── DemoApplication.java         # Main entry point
 │   │   │   │   ├── config/                      # Configuration classes
-│   │   │   │   │   └── AwsConfig.java           # AWS SDK setup
+│   │   │   │   │   ├── AwsConfig.java           # AWS SDK setup
+│   │   │   │   │   ├── SecurityConfig.java      # Spring Security configuration
+│   │   │   │   │   ├── JwtAuthenticationFilter.java  # JWT filter
+│   │   │   │   │   └── DataInitializer.java     # Database initialization
 │   │   │   │   ├── controller/                  # REST API endpoints
+│   │   │   │   │   ├── AuthController.java      # /api/auth (login, register)
 │   │   │   │   │   ├── DocumentController.java  # /api/documents
 │   │   │   │   │   ├── SearchController.java    # /api/search
 │   │   │   │   │   └── QAController.java        # /api/qa
 │   │   │   │   ├── model/                       # Data models
+│   │   │   │   │   ├── User.java                # User entity
+│   │   │   │   │   ├── Role.java                # Role enum (USER, ADMIN)
 │   │   │   │   │   └── Document.java            # Document entity
 │   │   │   │   ├── repository/                  # Database access
+│   │   │   │   │   ├── UserRepository.java      # User operations
 │   │   │   │   │   └── DocumentRepository.java  # DynamoDB operations
-│   │   │   │   └── service/                     # Business logic
-│   │   │   │       ├── S3Service.java           # S3 operations
-│   │   │   │       ├── SNSService.java          # SNS publishing
-│   │   │   │       ├── SearchService.java       # Vector search
-│   │   │   │       └── QAService.java           # Q&A logic
+│   │   │   │   ├── service/                     # Business logic
+│   │   │   │   │   ├── S3Service.java           # S3 operations
+│   │   │   │   │   ├── SNSService.java          # SNS publishing
+│   │   │   │   │   ├── SearchService.java       # Vector search
+│   │   │   │   │   └── QAService.java           # Q&A logic
+│   │   │   │   └── util/                        # Utility classes
+│   │   │   │       └── JwtUtil.java             # JWT token generation & validation
 │   │   │   └── resources/
 │   │   │       └── application.properties       # Configuration
 │   │   └── test/                                # Unit tests
-│   ├── target/                                  # Compiled files
 │   ├── pom.xml                                  # Maven dependencies
-│   └── start-backend.ps1                        # Backend startup script
 │
 ├── frontend/                         # React Frontend
 │   └── ai-knowledge-base/
@@ -208,9 +315,6 @@ AI Knowledge Base & Internal Search Assistant/
 │       └── package-lock.json                    # Locked versions
 │
 ├── start-project.ps1                 # One-click compile & run
-├── cleanup-s3-only.ps1               # Clean all documents
-├── list-all-documents.ps1            # View all documents
-├── recreate-dynamodb-tables.ps1      # Recreate DynamoDB tables
 └── README.md                         # This file
 ```
 
@@ -272,27 +376,86 @@ This script will:
 3. Install frontend dependencies (if needed)
 4. Start frontend on http://localhost:3000
 
-### **Manual Start**
-
-**Backend:**
-```powershell
-cd backend
-.\start-backend.ps1
-```
-
-**Frontend:**
-```powershell
-cd frontend/ai-knowledge-base
-npm start
-```
-
----
 
 ## API Documentation
 
-### **Upload Document**
+### **Authentication Endpoints**
+
+#### **User Registration**
+```http
+POST /api/auth/register
+Content-Type: application/json
+
+{
+  "username": "newuser",
+  "password": "password123",
+  "role": "USER"
+}
+
+Response:
+{
+  "message": "User registered successfully",
+  "username": "newuser",
+  "role": "USER"
+}
+```
+
+#### **User Login**
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+Response:
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "username": "admin",
+  "role": "ADMIN",
+  "message": "Login successful"
+}
+```
+
+#### **Verify Token**
+```http
+GET /api/auth/verify
+Authorization: Bearer <token>
+
+Response:
+{
+  "username": "admin",
+  "role": "ADMIN",
+  "valid": "true"
+}
+```
+
+### **Document Endpoints**
+
+#### **Get All Documents** (ADMIN only)
+```http
+GET /api/documents/all
+Authorization: Bearer <token>
+
+Response:
+[
+  {
+    "id": "doc123",
+    "fileName": "example.pdf",
+    "fileSize": 1024000,
+    "uploadDate": "2024-01-15T10:30:00Z",
+    "status": "PROCESSED",
+    "userId": "admin"
+  }
+]
+```
+
+### **Upload Document** (ADMIN only)
 ```http
 POST /api/documents/upload
+Authorization: Bearer <token>
 Content-Type: multipart/form-data
 
 Parameters:
@@ -371,9 +534,10 @@ Response:
 File stream with appropriate Content-Type header
 ```
 
-### **Delete Document**
+### **Delete Document** (ADMIN only)
 ```http
 DELETE /api/documents/{documentId}
+Authorization: Bearer <token>
 
 Response:
 {
@@ -446,17 +610,6 @@ do {
 
 ---
 
-## Maintenance Scripts
-
-| Script | Purpose |
-|--------|---------|
-| `start-project.ps1` | Compile and start backend + frontend |
-| `cleanup-s3-only.ps1` | Delete all documents (S3 + DynamoDB) |
-| `list-all-documents.ps1` | View all uploaded documents |
-| `recreate-dynamodb-tables.ps1` | Recreate DynamoDB tables |
-| `backend/start-backend.ps1` | Start backend only |
-
----
 
 ## Performance & Scalability
 
@@ -481,11 +634,15 @@ do {
 
 ## Security Considerations
 
-1. **AWS Credentials**: Never commit credentials to git; use environment variables or IAM roles
-2. **OpenAI API Key**: Store in environment variable, not in code
-3. **CORS**: Backend only allows requests from localhost:3000/3001 (change for production)
-4. **File validation**: Backend validates file type and size before upload
-5. **Input sanitization**: All user inputs are escaped before querying
+1. **JWT Authentication**: 24-hour token validity; stateless authentication
+2. **Password Security**: BCrypt hashing with salts; passwords never stored in plain text
+3. **Role-Based Access Control**: @PreAuthorize annotations protect sensitive endpoints
+4. **AWS Credentials**: Never commit credentials to git; use environment variables or IAM roles
+5. **OpenAI API Key**: Store in environment variable, not in code
+6. **CORS**: Backend only allows requests from localhost:3000/3001 and configured production domains
+7. **File validation**: Backend validates file type and size before upload
+8. **Input sanitization**: All user inputs are escaped before querying
+9. **Token Storage**: Frontend stores JWT in localStorage (consider httpOnly cookies for production)
 
 ---
 

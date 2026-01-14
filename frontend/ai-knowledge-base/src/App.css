@@ -595,3 +595,311 @@ input[type="file"] {
   opacity: 0.6;
   pointer-events: none;
 }
+
+
+/* ========================================
+   12. ADMIN TABLE STYLES
+   ======================================== */
+
+.admin-table-container {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.admin-table thead {
+  background: linear-gradient(135deg, #B0C4DE 0%, #708090 100%);
+  color: white;
+}
+
+.admin-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-table tbody tr {
+  border-bottom: 1px solid #e0e0e0;
+  transition: background 0.2s;
+}
+
+.admin-table tbody tr:hover {
+  background: #F0F8FF;
+}
+
+.admin-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.admin-table td {
+  padding: 1rem;
+  color: #1a1a1a;
+  font-size: 0.9rem;
+}
+
+.file-name-cell {
+  font-weight: 500;
+  color: #1a1a1a;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Status badges */
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.uploaded {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-badge.processing {
+  background: #cfe2ff;
+  color: #084298;
+}
+
+.status-badge.processed {
+  background: #d1e7dd;
+  color: #0f5132;
+}
+
+.status-badge.error {
+  background: #f8d7da;
+  color: #842029;
+}
+
+/* Action buttons in table */
+.admin-table .action-btn {
+  min-width: 80px;
+  padding: 0.5rem 1rem;
+  margin-right: 0.5rem;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.action-btn.download-btn {
+  background: linear-gradient(135deg, #B0C4DE 0%, #708090 100%);
+  color: white;
+}
+
+.action-btn.download-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(176, 196, 222, 0.4);
+}
+
+.action-btn.delete-btn {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+}
+
+.action-btn.delete-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+  .admin-table-container {
+    overflow-x: scroll;
+  }
+  
+  .admin-table {
+    min-width: 600px;
+  }
+  
+  .action-btn {
+    display: block;
+    margin: 0.25rem 0;
+    width: 100%;
+  }
+}
+
+
+/* ========================================
+   13. LOGIN PAGE STYLES
+   ======================================== */
+
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.login-box {
+  background: white;
+  border-radius: 16px;
+  padding: 3rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  max-width: 450px;
+  width: 100%;
+}
+
+.login-box h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.login-subtitle {
+  color: #666;
+  font-size: 1rem;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.auth-error {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.875rem 1.25rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s;
+  outline: none;
+}
+
+.form-group input:focus {
+  border-color: #B0C4DE;
+  box-shadow: 0 0 0 3px rgba(176, 196, 222, 0.1);
+}
+
+.login-btn {
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(135deg, #B0C4DE 0%, #708090 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+}
+
+.login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(176, 196, 222, 0.4);
+}
+
+.login-toggle {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.login-toggle p {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.login-toggle span {
+  color: #B0C4DE;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.login-toggle span:hover {
+  color: #708090;
+}
+
+.demo-credentials {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e0e0e0;
+  text-align: center;
+}
+
+.demo-credentials code {
+  background: #f0f0f0;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  color: #B0C4DE;
+  font-weight: 600;
+}
+
+/* User info in header */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  justify-content: center;
+}
+
+.user-badge {
+  background: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.logout-btn {
+  padding: 0.5rem 1.5rem;
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: auto;
+}
+
+.logout-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+}

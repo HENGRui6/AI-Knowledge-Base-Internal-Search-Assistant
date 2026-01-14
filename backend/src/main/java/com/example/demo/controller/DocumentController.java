@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.example.demo.service.SNSService;
@@ -42,7 +43,8 @@ public class DocumentController {
     @Autowired
     private DynamoDbClient dynamoDbClient;
 
-    // POST /api/documents/upload - Upload a document
+    // POST /api/documents/upload - Upload a document (ADMIN only)
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/upload")
     public ResponseEntity<?> uploadDocument(
             @RequestParam("file") MultipartFile file,
@@ -104,12 +106,18 @@ public class DocumentController {
         }
     }
 
-    // GET /api/documents - Get all documents
-    @GetMapping
-    public List<Document> getAllDocuments() {
-        return documentRepository.findAll();
+    // GET /api/documents/all - Get all documents (ADMIN only)
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllDocuments() {
+        try {
+            List<Document> documents = documentRepository.findAll();
+            return ResponseEntity.ok(documents);
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body(Map.of("error", "Failed to retrieve documents: " + e.getMessage()));
+        }
     }
-
     // GET /api/documents/user/{userId} - Get documents by user ID
     @GetMapping("/user/{userId}")
     public List<Document> getDocumentsByUserId(@PathVariable String userId) {
@@ -155,7 +163,8 @@ public class DocumentController {
         }
     }
 
-    // DELETE /api/documents/{id} - Delete document
+    // DELETE /api/documents/{id} - Delete document (ADMIN only)
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteDocument(@PathVariable String id) {
         try {
@@ -188,7 +197,8 @@ public class DocumentController {
         }
     }
 
-    // POST /api/documents/cleanup-embeddings - Clean up orphan embeddings
+    // POST /api/documents/cleanup-embeddings - Clean up orphan embeddings (ADMIN only)
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/cleanup-embeddings")
     public ResponseEntity<?> cleanupOrphanEmbeddings() {
         try {
