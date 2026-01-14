@@ -43,13 +43,15 @@ test-*.ps1
 diagnose-*.ps1
 package-lambda.ps1
 delete-*.ps1
-cleanup-orphan-*.ps1
+cleanup-*.ps1
 upload-docs.ps1
 rename-news-articles.ps1
 
 # Lambda deployment packages
 lambda-deployment-package.zip
 lambda-package-temp/
+lambda-package/
+**/lambda-deployment-package.zip
 
 # Sample documents (optional - keep local only)
 docs/

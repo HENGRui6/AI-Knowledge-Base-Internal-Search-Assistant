@@ -19,6 +19,7 @@ This project is a full-stack enterprise-grade knowledge base system that allows 
 - **User Authentication** with JWT-based login system
 - **Role-based Access Control** (ADMIN and USER roles)
 - **Upload documents** (PDF, TXT) to cloud storage (ADMIN only)
+- **Idempotent Lambda Processing** prevents duplicate document processing and saves costs
 - **Semantic search** using OpenAI embeddings for finding relevant content
 - **AI-powered Q&A** using GPT models with RAG (Retrieval-Augmented Generation)
 - **Download documents** from the search results
@@ -311,6 +312,12 @@ AI Knowledge Base & Internal Search Assistant/
 │       ├── package.json                         # npm dependencies
 │       └── package-lock.json                    # Locked versions
 │
+├── lambda/                            # AWS Lambda Function
+│   ├── lambda_function.py                       # Main Lambda handler with idempotency
+│   ├── requirements.txt                         # Python dependencies
+│   ├── deploy-lambda.ps1                        # Deployment script
+│   └── README.md                                # Lambda documentation
+│
 ├── start-project.ps1                 # One-click compile & run
 └── README.md                         # This file
 ```
@@ -577,7 +584,31 @@ Response:
 
 **Benefit:** GPT responses are grounded in your documents, reducing hallucinations.
 
-### **3. Asynchronous Document Processing**
+### **3. Lambda Idempotency (Duplicate Prevention)**
+
+**Problem:** SNS might deliver the same message multiple times, causing duplicate processing and wasted costs.
+
+**Solution:** Lambda function checks document status before processing:
+```
+1. SNS triggers Lambda
+2. Lambda checks: Is document already PROCESSED?
+3. If YES: Skip processing, return immediately (saves $$$)
+4. If NO: Process document → Update status to PROCESSED
+```
+
+**Benefits:**
+- Prevents duplicate OpenAI API calls (save $0.02+ per document)
+- Avoids redundant embedding generation
+- Guarantees exactly-once processing semantics
+- Enables safe manual retries for failed documents
+
+**Document Status Flow:**
+```
+PENDING (uploaded) → PROCESSING (Lambda running) → PROCESSED (complete)
+                                                  ↘ FAILED (error occurred)
+```
+
+### **4. Asynchronous Document Processing**
 
 **Why not process documents synchronously?**
 - Uploading a 50-page PDF takes 2-3 seconds

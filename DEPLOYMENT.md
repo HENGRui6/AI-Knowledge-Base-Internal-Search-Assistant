@@ -257,12 +257,11 @@ Once deployed, add to your resume:
 
 ```
 AI Knowledge Base & Search Assistant
-Live Demo: https://ai-kb.vercel.app
 GitHub: https://github.com/yourusername/ai-knowledge-base
-Backend API: https://ai-kb-backend.up.railway.app
 
 Technologies: React, Spring Boot, AWS (S3, Lambda, DynamoDB), OpenAI
-Features: Semantic search, RAG-based Q&A, drag-and-drop upload
+Features: JWT Authentication, Semantic search, RAG-based Q&A, Document management
+Security: Role-based access control, Idempotent processing, Data cleanup
 ```
 
 ---

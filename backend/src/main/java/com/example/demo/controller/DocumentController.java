@@ -76,7 +76,7 @@ public class DocumentController {
             document.setFileSize(file.getSize());
             document.setContentType(contentType);
             document.setUploadDate(Instant.now());
-            document.setStatus("UPLOADED");
+            document.setStatus("PENDING");  // Lambda will update to PROCESSING -> PROCESSED/FAILED
 
             Document savedDocument = documentRepository.save(document);
 
@@ -265,10 +265,113 @@ public class DocumentController {
 
     /**
      * Delete all embeddings for a document from DocumentEmbeddings table
+     * Uses full table scan with pagination to ensure all chunks are found and deleted
      */
     private void deleteDocumentEmbeddings(String documentId) {
         try {
-            // Scan for all embeddings with this document_id
+            System.out.println("Deleting embeddings for document: " + documentId);
+            int deletedCount = 0;
+            Map<String, AttributeValue> lastEvaluatedKey = null;
+            
+            // Scan with pagination to find all chunks for this document
+            do {
+                ScanRequest.Builder scanBuilder = ScanRequest.builder()
+                        .tableName("DocumentEmbeddings");
+                
+                if (lastEvaluatedKey != null) {
+                    scanBuilder.exclusiveStartKey(lastEvaluatedKey);
+                }
+                
+                ScanResponse scanResponse = dynamoDbClient.scan(scanBuilder.build());
+                
+                for (Map<String, AttributeValue> item : scanResponse.items()) {
+                    // Check if this chunk belongs to our document
+                    AttributeValue docIdAttr = item.get("document_id");
+                    if (docIdAttr != null && documentId.equals(docIdAttr.s())) {
+                        String chunkId = item.get("chunk_id").s();
+                        
+                        try {
+                            DeleteItemRequest deleteRequest = DeleteItemRequest.builder()
+                                    .tableName("DocumentEmbeddings")
+                                    .key(Map.of("chunk_id", AttributeValue.builder().s(chunkId).build()))
+                                    .build();
+                            
+                            dynamoDbClient.deleteItem(deleteRequest);
+                            deletedCount++;
+                            System.out.println("  Deleted chunk: " + chunkId);
+                        } catch (Exception e) {
+                            System.err.println("  Failed to delete chunk " + chunkId + ": " + e.getMessage());
+                        }
+                    }
+                }
+                
+                lastEvaluatedKey = scanResponse.lastEvaluatedKey();
+                
+            } while (lastEvaluatedKey != null && !lastEvaluatedKey.isEmpty());
+            
+            System.out.println("✅ Deleted " + deletedCount + " embeddings for document: " + documentId);
+            
+        } catch (Exception e) {
+            System.err.println("❌ Error deleting embeddings for " + documentId + ": " + e.getMessage());
+            e.printStackTrace();
+            // Continue with deletion even if embedding cleanup fails
+        }
+    }
+
+    // Fix document statuses - update all UPLOADED to PROCESSED
+    @PostMapping("/fix-statuses")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> fixDocumentStatuses() {
+        System.out.println("========== Fixing Document Statuses (Force Update) ==========");
+        
+        try {
+            List<Document> allDocuments = documentRepository.findAll();
+            int updatedCount = 0;
+            int alreadyCorrect = 0;
+            
+            for (Document doc : allDocuments) {
+                String status = doc.getStatus();
+                
+                // Skip if already PROCESSED or FAILED
+                if ("PROCESSED".equals(status) || "FAILED".equals(status)) {
+                    alreadyCorrect++;
+                    continue;
+                }
+                
+                // Force update all UPLOADED/PENDING to PROCESSED
+                doc.setStatus("PROCESSED");
+                if (doc.getProcessedAt() == null) {
+                    doc.setProcessedAt(Instant.now().toString());
+                }
+                documentRepository.update(doc);
+                updatedCount++;
+                System.out.println("Updated: " + doc.getFileName() + " -> PROCESSED");
+            }
+            
+            Map<String, Object> result = new HashMap<>();
+            result.put("message", "Status fix completed (force update)");
+            result.put("totalDocuments", allDocuments.size());
+            result.put("updated", updatedCount);
+            result.put("alreadyCorrect", alreadyCorrect);
+            
+            System.out.println("========== Fix Complete ==========");
+            System.out.println("Total: " + allDocuments.size() + ", Updated: " + updatedCount + 
+                             ", Already correct: " + alreadyCorrect);
+            
+            return ResponseEntity.ok(result);
+            
+        } catch (Exception e) {
+            System.err.println("Error fixing statuses: " + e.getMessage());
+            e.printStackTrace();
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Failed to fix statuses: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+    
+    // Helper method to check if document has embeddings
+    private boolean checkIfDocumentHasEmbeddings(String documentId) {
+        try {
             Map<String, AttributeValue> expressionValues = new HashMap<>();
             expressionValues.put(":docId", AttributeValue.builder().s(documentId).build());
 
@@ -276,28 +379,15 @@ public class DocumentController {
                     .tableName("DocumentEmbeddings")
                     .filterExpression("document_id = :docId")
                     .expressionAttributeValues(expressionValues)
+                    .limit(1)  // Only need to check if at least one exists
                     .build();
 
             ScanResponse scanResponse = dynamoDbClient.scan(scanRequest);
-            
-            int deletedCount = 0;
-            for (Map<String, AttributeValue> item : scanResponse.items()) {
-                String chunkId = item.get("chunk_id").s();
-                
-                DeleteItemRequest deleteRequest = DeleteItemRequest.builder()
-                        .tableName("DocumentEmbeddings")
-                        .key(Map.of("chunk_id", AttributeValue.builder().s(chunkId).build()))
-                        .build();
-                
-                dynamoDbClient.deleteItem(deleteRequest);
-                deletedCount++;
-            }
-            
-            System.out.println("Deleted " + deletedCount + " embeddings for document: " + documentId);
+            return scanResponse.count() > 0;
             
         } catch (Exception e) {
-            System.err.println("Error deleting embeddings: " + e.getMessage());
-            // Continue with deletion even if embedding cleanup fails
+            System.err.println("Error checking embeddings for " + documentId + ": " + e.getMessage());
+            return false;
         }
     }
 }

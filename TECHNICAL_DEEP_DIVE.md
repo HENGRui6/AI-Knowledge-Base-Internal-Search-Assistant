@@ -495,7 +495,7 @@ public class DocumentController {
 |---------|----------------|-----|
 | **Password Storage** | BCrypt with salt | Prevents rainbow table attacks; slow hashing increases brute-force cost |
 | **Token Expiration** | 24 hours | Balance between security and UX; shorter = more secure but more login prompts |
-| **Token Storage** | localStorage | Simple for demo; consider httpOnly cookies for production |
+| **Token Storage** | localStorage | Simple implementation; consider httpOnly cookies for enhanced security |
 | **HTTPS** | Required in production | Prevents token interception via man-in-the-middle attacks |
 | **CORS** | Configured for localhost | Prevents unauthorized cross-origin requests |
 | **SQL Injection** | N/A (DynamoDB) | DynamoDB SDK handles parameterization |
@@ -668,13 +668,13 @@ if (embeddingCache.containsKey(query)) {
 
 ## Conclusion
 
-This is a **production-grade implementation** of semantic search and RAG, not a mock or prototype. Every component (embeddings, similarity, RAG) is fully functional and can be verified by:
+This is a **production-grade implementation** of semantic search and RAG with full authentication and security features. Every component (JWT auth, embeddings, similarity, RAG, idempotency) is fully functional and can be verified by:
 
 1. Reading the source code
-2. Running locally with your own API keys
-3. Deploying to production and testing
+2. Running locally with your own API keys and AWS credentials
+3. Deploying to production and testing with real workloads
 
-The demo version exists solely to provide a risk-free public showcase while the full implementation proves technical competence.
+The system includes enterprise-grade features like role-based access control, idempotent processing, data cleanup mechanisms, and comprehensive error handling.
 
 ---
 
